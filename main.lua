@@ -1,3 +1,4 @@
+local Card = require "card"
 
 local backgroundColor
 local battleAreaWidthPercent
@@ -7,6 +8,10 @@ local playerSpriteY
 local circle
 local time
 
+
+-- Array of cards
+local cards = {}
+
 -- Only works with circles with x, y, and a radius
 function checkCollision(a1, a2)
     local distance = ((a1.x - a2.x) ^ 2 + (a1.y - a2.y) ^ 2) ^ 0.5
@@ -15,8 +20,9 @@ end
 
 -- Load some default values for our rectangle.
 function love.load()
+    love.window.setMode(1280, 720, {resizable = true})
     time = 0
-    backgroundColor = {0.1, 0.1, 0.1, 1}
+    backgroundColor = {0.06, 0.48, 0.69, 1}
     battleAreaWidthPercent = 0.4
     playerSprite = love.graphics.newImage("assets/keeny_sprites/blue_body_squircle.png")
     local playerSpriteWidth = playerSprite:getWidth()
@@ -45,14 +51,13 @@ function love.load()
         appearTime = 1,
         cooldownTime = 1.5,
         collision = false,
+        remainingCardInserts = 1,
+        maxCardInserts = 1
     }
 end
 
--- Increase the size of the rectangle every frame.
 function love.update(dt)
     time = time + dt
-    -- w = w + 1 
-    -- h = h + 1
     if circle.shouldDraw then
         circle.timer = circle.timer + dt
 
@@ -65,13 +70,21 @@ function love.update(dt)
 
         if circle.onCooldown and circle.timer > (circle.appearTime + circle.cooldownTime) then
             circle.onCooldown = false
+            circle.remainingCardInserts = circle.maxCardInserts
         end
     end
 
     smallCircle.x = 500 + 200 * math.cos(time * 2)
-    -- print(math.cos(time))
 
     circle.collision = circle.shouldDraw and checkCollision(smallCircle, circle)
+
+    if circle.collision and circle.remainingCardInserts > 0 then
+        circle.remainingCardInserts = circle.remainingCardInserts - 1
+        local cardX = (#cards * 120) + 50
+        local cardY = 500
+        local newCard = Card:init(cardX, cardY)
+        table.insert(cards, newCard)
+    end
 end
 
 function love.keypressed(key)
@@ -113,5 +126,9 @@ function love.draw()
 
     if circle.collision then
         love.graphics.print("Circle collided!", 100, 100)
+    end
+
+    for _, card in ipairs(cards) do
+        card:draw()
     end
 end
