@@ -1,4 +1,6 @@
 local Card = require "card"
+local tween = require "tween"
+local Easing = require "easing"
 
 local backgroundColor
 local battleAreaWidthPercent
@@ -31,14 +33,15 @@ function love.load()
     playerSpriteY = 0 - playerSpriteHeight
 
     smallCircle = {
-        x = 700,
+        x = 900,
         y = 300,
         radius = 20,
         shouldDraw = true,
         onCooldown = false,
         timer = 0,
         appearTime = 1,
-        cooldownTime = 1.5
+        cooldownTime = 1.5,
+        tweenTime = 0
     }
 
     circle = {
@@ -74,7 +77,12 @@ function love.update(dt)
         end
     end
 
-    smallCircle.x = 500 + 200 * math.cos(time * 2)
+    smallCircle.x = tween(smallCircle.tweenTime, 900, -900, 1, Easing.inOutQuad)
+    if (smallCircle.tweenTime >= 1) then
+        smallCircle.tweenTime = 0
+    else
+        smallCircle.tweenTime = smallCircle.tweenTime + dt
+    end
 
     circle.collision = circle.shouldDraw and checkCollision(smallCircle, circle)
 
@@ -106,13 +114,6 @@ function love.draw()
     
     local midPointX  = (windowWidth) / 2
     local midPointY = (windowHeight) / 2
-
-    -- love.graphics.setColor(0.4, 0.4, 0.4)
-    -- love.graphics.rectangle("fill", battleAreaX, 0, battleAreaWidth, windowHeight)
-    
-    -- love.graphics.setColor(0, 0.4, 0.4)
-    -- love.graphics.circle("fill", midPointX, midPointY + 150, 100)
-    -- love.graphics.draw(playerSprite, midPointX + playerSpriteX, midPointY + playerSpriteY)
 
     if circle.shouldDraw then
         love.graphics.setColor(1, 0, 0)
